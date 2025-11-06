@@ -8,7 +8,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")  
 local LocalPlayer = Players.LocalPlayer  
 local placeId = game.PlaceId  
-  
+
 local GC = getconnections or get_signal_cons  
 if GC then  
     for _, v in pairs(GC(LocalPlayer.Idled)) do  
@@ -22,7 +22,7 @@ else
     end)  
 end  
 
-Guiservice.ErrorMessageChanged:Connect(function()  
+GuiService.ErrorMessageChanged:Connect(function()  
     while task.wait(2) do  
         local suc, _ = pcall(function()  
             TeleportService:TeleportToPlaceInstance(placeId, game.JobId, LocalPlayer)  
@@ -30,7 +30,7 @@ Guiservice.ErrorMessageChanged:Connect(function()
         if suc then break end  
     end  
 end)  
-  
+
 local playerGui = LocalPlayer:WaitForChild("PlayerGui")  
 if playerGui:FindFirstChild("AutoFarmGui") then playerGui.AutoFarmGui:Destroy() end  
 
@@ -92,7 +92,7 @@ local autoFarm = false
 local userToggledFarm = false  
 local roundActive = false  
 local map  
-
+  
 game.Workspace.DescendantAdded:Connect(function(m)  
     if m:IsA("Model") and m:GetAttribute("MapID") then  
         map = m  
@@ -182,7 +182,7 @@ local function getBall()
     end)  
     return success and value or 0  
 end  
-  
+
 local function monitorHealth(humanoid)  
     humanoid.Died:Connect(function()  
         if currentTween then currentTween:Cancel() end  
