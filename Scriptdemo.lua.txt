@@ -1,41 +1,252 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/Ui-Redz-V2/refs/heads/main/UiREDzV2.lua"))()
+pcall(function()
+repeat task.wait() until game:IsLoaded()
 
-local Window = MakeWindow({
-    Hub = {
-        Title = "Toan Roblox",
-        Animation = "Youtube: no"
-    },
-    Key = {
-        KeySystem = false,
-        Title = "Key System",
-        Description = "",
-        KeyLink = "",
-        Keys = {"1234"},
-        Notifi = {
-            Notifications = true,
-            CorrectKey = "Running the Script...",
-            IncorrectKey = "The key is incorrect",
-            CopyKeyLink = "Copied to Clipboard"
-        }
-    }
-})
+local Players = game:GetService("Players")  
+local TeleportService = game:GetService("TeleportService")  
+local GuiService = game:GetService("GuiService")  
+local TweenService = game:GetService("TweenService")  
+local UserInputService = game:GetService("UserInputService")  
+local LocalPlayer = Players.LocalPlayer  
+local placeId = game.PlaceId  
+  
+local GC = getconnections or get_signal_cons  
+if GC then  
+    for _, v in pairs(GC(LocalPlayer.Idled)) do  
+        if v.Disable then v:Disable() elseif v.Disconnect then v:Disconnect() end  
+    end  
+else  
+    local vu = game:GetService("VirtualUser")  
+    LocalPlayer.Idled:Connect(function()  
+        vu:CaptureController()  
+        vu:ClickButton2(Vector2.new())  
+    end)  
+end  
 
-MinimizeButton({
-    Image = "http://www.roblox.com/asset/?id=83190276951914",
-    Size = {60, 60},
-    Color = Color3.fromRGB(10, 10, 10),
-    Corner = true,
-    Stroke = false,
-    StrokeColor = Color3.fromRGB(255, 0, 0)
-})
+Guiservice.ErrorMessageChanged:Connect(function()  
+    while task.wait(2) do  
+        local suc, _ = pcall(function()  
+            TeleportService:TeleportToPlaceInstance(placeId, game.JobId, LocalPlayer)  
+        end)  
+        if suc then break end  
+    end  
+end)  
+  
+local playerGui = LocalPlayer:WaitForChild("PlayerGui")  
+if playerGui:FindFirstChild("AutoFarmGui") then playerGui.AutoFarmGui:Destroy() end  
 
------- Tab
-local Tab1o = MakeTab({Name = "autufarmcoinmm2"})
+local ScreenGui = Instance.new("ScreenGui")  
+ScreenGui.Name = "AutoFarmGui"  
+ScreenGui.ResetOnSpawn = false  
+ScreenGui.Parent = playerGui  
 
-------- BUTTON
-AddButton(Tab1o, {
-    Name = "highlight mm2",
-    Callback = function()
-        loadstring(game:HttpGet("https://www.highlighthub.vip/api/get-loader?id=cv0k2d"))()
-    end
-})
+local Frame = Instance.new("Frame")  
+Frame.Size = UDim2.new(0, 230, 0, 180)  
+Frame.Position = UDim2.new(0, 20, 0, 100)  
+Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  
+Frame.Active = true  
+Frame.Draggable = true  
+Frame.Parent = ScreenGui  
+
+local LabelCredit = Instance.new("TextLabel", Frame)  
+LabelCredit.Size = UDim2.new(1, -10, 0, 20)  
+LabelCredit.Position = UDim2.new(0, 5, 0, 5)  
+LabelCredit.BackgroundTransparency = 1  
+LabelCredit.TextColor3 = Color3.fromRGB(255, 255, 255)  
+LabelCredit.Text = "Made by Toàn"  
+LabelCredit.Font = Enum.Font.SourceSansBold  
+LabelCredit.TextSize = 18  
+
+local LabelStats = Instance.new("TextLabel", Frame)  
+LabelStats.Size = UDim2.new(1, -10, 0, 40)  
+LabelStats.Position = UDim2.new(0, 5, 0, 30)  
+LabelStats.BackgroundTransparency = 1  
+LabelStats.TextColor3 = Color3.fromRGB(255, 255, 0)  
+LabelStats.Text = "Ball nhặt: 0 | +0/s | Thời gian: 0s"  
+LabelStats.Font = Enum.Font.SourceSans  
+LabelStats.TextSize = 16  
+
+local LabelStatus = Instance.new("TextLabel", Frame)  
+LabelStatus.Size = UDim2.new(1, -10, 0, 20)  
+LabelStatus.Position = UDim2.new(0, 5, 0, 70)  
+LabelStatus.BackgroundTransparency = 1  
+LabelStatus.TextColor3 = Color3.fromRGB(100, 200, 255)  
+LabelStatus.Text = "⏳ Đang chờ round bắt đầu..."  
+LabelStatus.Font = Enum.Font.SourceSansItalic  
+LabelStatus.TextSize = 16  
+
+local ButtonFarm = Instance.new("TextButton", Frame)  
+ButtonFarm.Size = UDim2.new(1, -10, 0, 30)  
+ButtonFarm.Position = UDim2.new(0, 5, 0, 100)  
+ButtonFarm.BackgroundColor3 = Color3.fromRGB(30, 30, 30)  
+ButtonFarm.TextColor3 = Color3.fromRGB(255, 255, 255)  
+ButtonFarm.Text = "Bật Auto Farm"  
+
+local ButtonExit = Instance.new("TextButton", Frame)  
+ButtonExit.Size = UDim2.new(1, -10, 0, 30)  
+ButtonExit.Position = UDim2.new(0, 5, 0, 140)  
+ButtonExit.BackgroundColor3 = Color3.fromRGB(50, 0, 0)  
+ButtonExit.TextColor3 = Color3.fromRGB(255, 255, 255)  
+ButtonExit.Text = "Tắt Script"  
+
+local autoFarm = false  
+local userToggledFarm = false  
+local roundActive = false  
+local map  
+
+game.Workspace.DescendantAdded:Connect(function(m)  
+    if m:IsA("Model") and m:GetAttribute("MapID") then  
+        map = m  
+        roundActive = true  
+        LabelStatus.Text = "🗺️ Round mới phát hiện!"  
+        if userToggledFarm then  
+            task.wait(1)  
+            autoFarm = true  
+            LabelStatus.Text = "🟢 Round mới! Tiếp tục farm..."  
+        end  
+    end  
+end)  
+
+game.Workspace.DescendantRemoving:Connect(function(m)  
+    if m == map then  
+        map = nil  
+        roundActive = false  
+        autoFarm = false  
+        LabelStatus.Text = "⏳ Round kết thúc - Đang chờ round mới..."  
+        -- Chờ round mới để tự bật farm  
+        task.spawn(function()  
+            while not roundActive do task.wait(0.5) end  
+            if userToggledFarm then  
+                autoFarm = true  
+                LabelStatus.Text = "🟢 Round mới! Tiếp tục farm..."  
+            end  
+        end)  
+    end  
+end)  
+
+ButtonFarm.MouseButton1Click:Connect(function()  
+    userToggledFarm = not userToggledFarm  
+    autoFarm = userToggledFarm and roundActive or false  
+    ButtonFarm.Text = userToggledFarm and "Tắt Auto Farm" or "Bật Auto Farm"  
+    LabelStatus.Text = autoFarm and "🟢 Đang farm..." or "⏸️ Đang tạm dừng..."  
+end)  
+
+ButtonExit.MouseButton1Click:Connect(function()  
+    ScreenGui:Destroy()  
+    autoFarm = false  
+    userToggledFarm = false  
+end)  
+
+UserInputService.InputBegan:Connect(function(input, processed)  
+    if processed then return end  
+    if input.KeyCode == Enum.KeyCode.M then Frame.Visible = not Frame.Visible end  
+end)  
+
+local speed = 32  
+
+local function getCharParts(character)  
+    local hrp, humanoid  
+    repeat  
+        task.wait(0.1)  
+        if character then  
+            hrp = character:FindFirstChild("HumanoidRootPart")  
+            humanoid = character:FindFirstChild("Humanoid")  
+        end  
+    until hrp and humanoid  
+    return hrp, humanoid  
+end  
+
+local currentTween = nil  
+local function tweenTo(pos, speed)  
+    local hrp, _ = getCharParts(LocalPlayer.Character)  
+    if not hrp then return end  
+    local dist = (pos - hrp.Position).Magnitude  
+    local time = math.max(dist / speed, 0.2)  
+    if currentTween then currentTween:Cancel() end  
+    currentTween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = CFrame.new(pos)})  
+    currentTween:Play()  
+    currentTween.Completed:Wait()  
+end  
+
+local function getBall()  
+    local success, value = pcall(function()  
+        if LocalPlayer:FindFirstChild("leaderstats") and LocalPlayer.leaderstats:FindFirstChild("Coins") then  
+            return LocalPlayer.leaderstats.Coins.Value  
+        end  
+        if LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data:FindFirstChild("BeachBall") then  
+            return LocalPlayer.Data.BeachBall.Value  
+        end  
+        if LocalPlayer:FindFirstChild("BallInventory") then  
+            return LocalPlayer.BallInventory.Value  
+        end  
+        return 0  
+    end)  
+    return success and value or 0  
+end  
+  
+local function monitorHealth(humanoid)  
+    humanoid.Died:Connect(function()  
+        if currentTween then currentTween:Cancel() end  
+        autoFarm = false  
+        LabelStatus.Text = "💀 Nhân vật đã chết - chờ round mới..."  
+        -- Tự động farm lại khi map mới spawn  
+        task.spawn(function()  
+            while not roundActive do task.wait(0.5) end  
+            if userToggledFarm then  
+                autoFarm = true  
+                LabelStatus.Text = "🟢 Nhân vật respawn - Tiếp tục farm..."  
+            end  
+        end)  
+    end)  
+end  
+
+local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()  
+local _, hum = getCharParts(char)  
+if hum then monitorHealth(hum) end  
+
+LocalPlayer.CharacterAdded:Connect(function(newChar)  
+    task.wait(0.5)  
+    char = newChar  
+    local _, newHum = getCharParts(newChar)  
+    if newHum then monitorHealth(newHum) end  
+    autoFarm = false  
+    LabelStatus.Text = "⚙️ Đang respawn - chờ round mới..."  
+end)  
+
+local lastBallCount, totalBallPicked, startTime, MAX_BALL = 0, 0, tick(), 40  
+
+task.spawn(function()  
+    while task.wait(0.05) do  
+        if autoFarm and map and map:FindFirstChild("CoinContainer") then  
+            local hrp, _ = getCharParts(LocalPlayer.Character)  
+            local coins = map.CoinContainer:GetChildren()  
+            local nearest, minDist = nil, math.huge  
+            for _, coin in ipairs(coins) do  
+                if coin:IsA("Part") and (coin.Name == "Coin_Server" or coin.Name == "Coin" or coin.Name == "Ball") then  
+                    local cv = coin:FindFirstChild("CoinVisual")  
+                    if (not cv or cv.Transparency ~= 1) then  
+                        local dist = (hrp.Position - coin.Position).Magnitude  
+                        if dist < minDist then nearest, minDist = coin, dist end  
+                    end  
+                end  
+            end  
+            if nearest then tweenTo(nearest.Position, speed) end  
+        end  
+    end  
+end)  
+
+task.spawn(function()  
+    while task.wait(1) do  
+        local currentBall = getBall()  
+        local ballThisSecond = math.max(currentBall - lastBallCount, 0)  
+        lastBallCount = currentBall  
+        totalBallPicked = totalBallPicked + ballThisSecond  
+        local elapsed = math.floor(tick() - startTime)  
+        LabelStats.Text = "Ball nhặt: "..totalBallPicked.." | +"..ballThisSecond.."/s | Thời gian: "..elapsed.."s"  
+
+        if autoFarm and currentBall >= MAX_BALL then  
+            TeleportService:Teleport(placeId, LocalPlayer)  
+        end  
+    end  
+end)
+
+end)
